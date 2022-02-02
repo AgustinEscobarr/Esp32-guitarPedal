@@ -9,16 +9,17 @@ float S = Y;
 int samples[repeat];
 boolean firstTime = true;
 
-void filterInit(){   //carga con valores tomados del adc al vector de muestras la primera vez.
-  int i=0;
-  for(i=0;i<=repeat-1;i++){
-    Y = (float) analogRead(adcPin);
-    S +=  Y / repeat;
-    samples[i]= Y / repeat;
-  }
-  firstTime = false; 
+// void filterInit(){   //carga con valores tomados del adc al vector de muestras la primera vez.
+//   int i=0;
+//   for(i=0;i<=repeat-1;i++){
+//     Y = (float) analogRead(adcPin);
+//     S +=  Y / repeat;
+//     Serial.println(S);
+//     samples[i]= Y / repeat;
+//   }
+//   firstTime = false; 
   
-}
+// }
 
 void setup() {
   // put your setup code here, to run once:
@@ -28,7 +29,7 @@ void setup() {
   for(i=0 ;i<=repeat-1 ;i++){  // Se inicializan los valores del vector que va a guardar las muestras
     samples[i]=0;
   };
-  filterInit();
+  // filterInit();
   
   
 }
@@ -40,12 +41,10 @@ void serialPrinter(float sampleFiltered){  //imprime los valores de salida del f
 
 
 void filtering(){
-  // Y = (float) analogRead(adcPin);
-  // S = 0.13*Y + (1-0.13)*S;
-  // serialPrinter(S);
+  
   float lastSample = ((float) analogRead(adcPin) )/ repeat; // toma un nuevo valor del adc, que se agrega en la ultima posicion del vector.
-  S = S - samples[0] + lastSample;
-  serialPrinter(S);
+  S = (S - samples[0]) + lastSample;
+  Serial.println(S);
 
   for(int i = 0 ; i<=repeat-1 ; i++){
     if(i<repeat-1){
