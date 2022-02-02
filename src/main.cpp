@@ -16,8 +16,8 @@ void setup() {
 }
 
 void serialPrinter(){
-  Serial.print(Y);
-  Serial.print(",");
+  // Serial.print(Y);
+  // Serial.print(",");
   Serial.println(S);
 }
 
