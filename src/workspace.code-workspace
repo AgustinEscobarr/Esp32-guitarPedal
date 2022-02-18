@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "..\\..\\..\\..\\Proyectos UNIVERSIDAD"
+		},
+		{
+			"name": "Esp-32 Pedardu",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"cmath": "cpp"
+		}
+	}
+}

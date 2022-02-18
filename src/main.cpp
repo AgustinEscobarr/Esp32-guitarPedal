@@ -13,14 +13,16 @@ const int dac2Pin = 26;
 const int clean_toggle = 16;
 const int prev_effect = 4;
 const int next_effect = 17;
+const int led_power = 13;
 const int led_clean=5;
 const int led_tremolo=18;
 const int led_distortion=19;
 const int led_delay = 3;
+const int led_OVERLOAD;
 const int gpioPOT0 = 36; // Volumen
-const int gpioPOT1= 39; // Freq
+const int gpioPOT1= 39; // Freq 
 const int gpioPOT2 = 34; // Algo qsy config delay
-int POT0,POT1, POT2, in_ADC0, in_ADC1, out_DAC0, out_DAC1, upper_threshold, lower_threshold;;
+int POT0=4095,POT1 = 2045, POT2, in_ADC0, in_ADC1, out_DAC0, out_DAC1, upper_threshold, lower_threshold;
 int count = 0, sample=0;
 int selector = 0;
 int LFO = 0;
@@ -35,7 +37,96 @@ unsigned int Delay_Depth = MAX_DELAY;
 uint16_t nSineTable[samples];
 hw_timer_t *timer= NULL ,*timer1=NULL;
 
-void ledEffectsControl(){
+void ledEffectsControl();
+void clean();
+void prev();
+void next();
+void sinewaveGenerator();
+void filtering();
+void tremolo();
+void distortion();
+void delayEffect();
+void timerInit();
+void timer1Init();
+
+
+
+void setup() {
+  // put your setup code here, to run once:
+  //Serial.begin(115200);
+  pinMode(led_power, OUTPUT);
+  pinMode(led_clean, OUTPUT);
+  pinMode(led_tremolo, OUTPUT);
+  pinMode(led_distortion, OUTPUT);
+  pinMode(led_delay, OUTPUT);
+  
+  pinMode(led_power, OUTPUT);
+  pinMode(led_OVERLOAD, OUTPUT);
+
+  pinMode(clean_toggle, INPUT); // se utiliza el modo pull up para poder usar el boton.
+  attachInterrupt(clean_toggle, clean, FALLING);
+   pinMode(prev_effect, INPUT); 
+  attachInterrupt(prev_effect, prev, FALLING);
+   pinMode(next_effect, INPUT); 
+  attachInterrupt(next_effect, next, RISING);
+
+  analogSetPinAttenuation(adcPin,ADC_0db);
+  analogSetPinAttenuation(adc1Pin,ADC_0db);
+  dac_output_enable(DAC_CHANNEL_1);  // se habilita del DAC 1 (GPIO25)
+  dac_output_enable(DAC_CHANNEL_2); // se habilita el DAC 2 (GPIO26)
+
+  sinewaveGenerator();
+  
+}
+
+
+
+void loop() {
+  // POT0=analogRead(gpioPOT0);
+  // POT1=analogRead(gpioPOT1);
+  POT2=analogRead(gpioPOT2);
+  switch (selector)
+  {
+  case 0:
+      
+    filtering();
+    dacWrite(dac1Pin,map(Y0,1,4095,1, POT0)/16); 
+    dacWrite(dac2Pin,map(Y1,1,4095,1, POT0)/16);
+    break;
+  case 1:
+  
+    timerInit();
+    tremolo();
+    break;
+  case 2:
+  
+    filtering();
+    distortion();
+    break;
+  case 3:
+  
+    timer1Init();
+    delayEffect();
+    break;
+  default:
+    break;
+  }
+  // put your main code here, to run repeatedly:
+  
+   
+ }
+
+
+
+
+
+
+
+
+
+
+
+ void ledEffectsControl(){
   switch (selector)
   {
   case 0:
@@ -118,29 +209,7 @@ void sinewaveGenerator(){
   }
 }
 
-void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(115200);
 
-
-  pinMode(clean_toggle, INPUT_PULLUP); // se utiliza el modo pull up para poder usar el boton.
-  attachInterrupt(clean_toggle, clean, FALLING);
-   pinMode(prev_effect, INPUT_PULLUP); 
-  attachInterrupt(prev_effect, prev, FALLING);
-   pinMode(next_effect, INPUT_PULLUP); 
-  attachInterrupt(next_effect, next, RISING);
-  // // analogSetAttenuation(ADC_0db);
-  dac_output_enable(DAC_CHANNEL_1);  // se habilita del DAC 1 (GPIO25)
-  dac_output_enable(DAC_CHANNEL_2); // se habilita el DAC 2 (GPIO26)
-
-  // sinewaveGenerator();
-  
-}
-void serialPrinter(){
-  // Serial.print(Y);
-  // Serial.print(",");
-  Serial.println(Y0);
-}
 
 void filtering(){ // Filtro FIR, donde se toman una cantidad determinada de muestras para obtener el valor medio móvil (se obtiene un solo valor).
    for(int i=0;i<repeat;i++){
@@ -158,16 +227,16 @@ void tremolo(){
   
   filtering();
   
-  POT2 = POT2>>1; //divide value by 2 (its too big) 
+  POT1 = POT1>>1; //divide value by 2 (its too big) 
   count++; 
   if (count>=160) //160 chosen empirically
   {
      count=0;
-    sample=sample+POT2;
+    sample=sample+POT1;
     if(sample>=samples) sample=0;
   }
 
-  LFO=map(nSineTable[sample],0,4095,(4095-POT1),4095); // maneja la frecuencia con el POT1
+  LFO=map(nSineTable[sample],0,4095,(4095-POT2),4095); // maneja la frecuencia con el POT2
   out_DAC0=map(Y0,1,4095,1, LFO);
   out_DAC1=map(Y1,1,4095,1, LFO);
  
@@ -235,39 +304,4 @@ void timer1Init(){
   timerAlarmWrite(timer1, 1, true);
   timerAlarmEnable(timer1);
 }
-void loop() {
-  POT0=analogRead(gpioPOT0);
-  POT1=analogRead(gpioPOT1);
-  POT2=analogRead(gpioPOT2);
-  switch (selector)
-  {
-  case 0:
-      
-    filtering();
-    dacWrite(dac1Pin,map(Y0,1,4095,1, POT0)/16); 
-    dacWrite(dac2Pin,map(Y1,1,4095,1, POT0)/16);
-    break;
-  case 1:
-  
-    timerInit();
-    tremolo();
-    break;
-  case 2:
-  
-    filtering();
-    distortion();
-    break;
-  case 3:
-  
-    timer1Init();
-    delayEffect();
-    break;
-  default:
-    break;
-  }
-  // put your main code here, to run repeatedly:
-  
-   
- }
-
 
