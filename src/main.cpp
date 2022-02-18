@@ -18,7 +18,7 @@ const int led_clean=5;
 const int led_tremolo=18;
 const int led_distortion=19;
 const int led_delay = 3;
-const int led_OVERLOAD;
+const int led_OVERLOAD = 12;
 const int gpioPOT0 = 36; // Volumen
 const int gpioPOT1= 39; // Freq            // POT 2 ahora, POT 1 inutilizado
 const int gpioPOT2 = 34; // Algo qsy config delay 
