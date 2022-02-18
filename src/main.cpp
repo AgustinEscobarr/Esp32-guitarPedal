@@ -20,8 +20,8 @@ const int led_distortion=19;
 const int led_delay = 3;
 const int led_OVERLOAD;
 const int gpioPOT0 = 36; // Volumen
-const int gpioPOT1= 39; // Freq 
-const int gpioPOT2 = 34; // Algo qsy config delay
+const int gpioPOT1= 39; // Freq            // POT 2 ahora, POT 1 inutilizado
+const int gpioPOT2 = 34; // Algo qsy config delay 
 int POT0=4095,POT1 = 2045, POT2, in_ADC0, in_ADC1, out_DAC0, out_DAC1, upper_threshold, lower_threshold;
 int count = 0, sample=0;
 int selector = 0;
